@@ -1,0 +1,13 @@
+buat `issue.md` untuk planning:
+
+Modifikasi fitur: auth
+
+- tambahkan password pada user.
+- modifikasi pada fitur lainnya, dan tambahkan fitur lupa sandi
+- modifikasi data pada 50 db seed yang telah dibuat menggunakan password
+- modifikasi data dimana name: ADMIN dengan nilai password: 9968siskom
+
+Jangan terlalu low level atau detail
+Cukup instruksikan high level 
+
+Nanti dokumen planningnya akan digunakan oleh model AI yang lebih murah untuk diimplementasikan.

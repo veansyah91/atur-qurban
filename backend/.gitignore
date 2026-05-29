@@ -1,0 +1,33 @@
+# Binary
+bin/
+tmp/
+*.exe
+*.out
+
+# Environment
+.env
+*.local
+
+# Dependencies
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Swagger
+docs/swagger.json
+docs/swagger.yaml
