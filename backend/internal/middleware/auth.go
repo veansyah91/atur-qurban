@@ -52,3 +52,26 @@ func AdminOnly(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+
+// RequireVerified middleware untuk memastikan user sudah terverifikasi
+func RequireVerified(authService service.AuthService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userID := c.Locals("user_id")
+		if userID == nil {
+			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "user_id tidak ditemukan")
+		}
+
+		// Ambil data user dari service
+		userResp, err := authService.GetUserByID(userID.(string))
+		if err != nil {
+			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "gagal ambil data user: "+err.Error())
+		}
+
+		// Cek apakah user sudah terverifikasi
+		if userResp.VerifiedAt == nil {
+			return utils.ErrorResponse(c, fiber.StatusForbidden, "akun anda belum terverifikasi")
+		}
+
+		return c.Next()
+	}
+}

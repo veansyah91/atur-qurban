@@ -1,11 +1,26 @@
-buat `issue.md` untuk planning:
+buat issue.md untuk planning:
 
-Modifikasi fitur: auth
+Task: Buat contact category dan contact
 
-- tambahkan password pada user.
-- modifikasi pada fitur lainnya, dan tambahkan fitur lupa sandi
-- modifikasi data pada 50 db seed yang telah dibuat menggunakan password
-- modifikasi data dimana name: ADMIN dengan nilai password: 9968siskom
+- dimiliki oleh tenant
+- contact category =  {
+  name: string
+}
+- contact = {
+  contact_category_id: FK
+  name: string,
+  is_active: boolean (default: true),
+  address: string (nullable),
+  phone: string (nullabe)
+}
+- data default contact category = [
+  {
+    name: 'umum'
+  },
+]
+- buat seeder contact berjumlah 20
+- setelah melakukan unit test, maka lakukan code review
+- buat documentation/contact_category.md dan documentation/contact.md
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 

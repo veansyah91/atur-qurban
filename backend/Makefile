@@ -2,7 +2,7 @@ BINARY   := ./bin/app
 MAIN     := ./cmd/main.go
 MIGRATE  := migrate -path ./migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL_MODE)"
 
-.PHONY: run build test tidy docker-up docker-down migrate-up migrate-down migrate-create swag
+.PHONY: run build test tidy docker-up docker-down migrate-up migrate-down migrate-create swag seed
 
 # Jalankan server dengan Air (live reload)
 run:
@@ -43,3 +43,7 @@ migrate-create:
 # Generate dokumentasi Swagger
 swag:
 	swag init -g $(MAIN) -o ./docs
+
+# Jalankan seeder untuk data awal
+seed:
+	go run ./cmd/seed/main.go

@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
@@ -10,7 +11,10 @@ import (
 	"github.com/username/qurban-app/internal/middleware"
 	"github.com/username/qurban-app/internal/repository"
 	"github.com/username/qurban-app/internal/service"
+	"github.com/username/qurban-app/internal/worker"
+	"github.com/username/qurban-app/pkg/queue"
 	"github.com/username/qurban-app/pkg/utils"
+	"github.com/username/qurban-app/pkg/whatsapp"
 	"gorm.io/gorm"
 )
 
@@ -46,19 +50,42 @@ func NewRouter(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
+	tenantRepo := repository.NewTenantRepository(db)
+
+	// Initialize GOWA WhatsApp client
+	waClient := whatsapp.NewClient(
+		cfg.WhatsApp.URL,
+		cfg.WhatsApp.Username,
+		cfg.WhatsApp.Password,
+	)
+
+	// Initialize notification queue
+	notifQueue := queue.NewNotificationQueue(rdb)
+
+	// Initialize logger
+	logger := log.New(log.Writer(), "[Server] ", log.LstdFlags)
 
 	// Initialize services
-	authService := service.NewAuthService(userRepo, rdb, cfg)
+	notificationService := service.NewNotificationService(notifQueue)
+	authService := service.NewAuthService(userRepo, rdb, cfg, notificationService, logger)
+	tenantService := service.NewTenantService(tenantRepo, userRepo, notificationService, logger)
+	notifWorker := worker.NewNotificationWorker(notifQueue, waClient, logger)
+
+	// Start notification worker
+	notifWorker.Start(context.Background())
 
 	// Initialize handlers
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, cfg)
+	tenantHandler := handler.NewTenantHandler(tenantService)
 
 	// Grup API versi 1
 	api := app.Group("/api/v1")
 
 	// Auth routes (public)
 	authGroup := api.Group("/auth")
-	authGroup.Post("/register", authHandler.Register)
+	authGroup.Post("/register/request-otp", authHandler.RequestRegisterOTP)
+	authGroup.Post("/register/resend-otp", authHandler.ResendRegisterOTP)
+	authGroup.Post("/register/verify", authHandler.VerifyRegisterOTP)
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/refresh", authHandler.RefreshToken)
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
@@ -67,5 +94,19 @@ func NewRouter(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	// Auth routes (protected)
 	authGroup.Post("/logout", middleware.JWTAuth(authService), authHandler.Logout)
 	authGroup.Get("/me", middleware.JWTAuth(authService), authHandler.Me)
+
+	// Tenant routes (protected)
+	api.Post("/tenants", middleware.JWTAuth(authService), tenantHandler.CreateTenant)
+	api.Get("/tenants", middleware.JWTAuth(authService), tenantHandler.GetTenants)
+
+	// Tenant detail routes (require membership + admin)
+	tenantGroup := api.Group("/tenants/:id")
+	tenantGroup.Use(middleware.JWTAuth(authService), middleware.TenantMember(tenantRepo))
+	tenantGroup.Get("", tenantHandler.GetTenant)
+	tenantGroup.Get("/members", tenantHandler.GetMembers)
+	tenantGroup.Put("", middleware.TenantAdmin(tenantRepo), tenantHandler.UpdateTenant)
+	tenantGroup.Delete("", middleware.TenantAdmin(tenantRepo), tenantHandler.DeleteTenant)
+	tenantGroup.Post("/members", middleware.TenantAdmin(tenantRepo), tenantHandler.InviteMember)
+	tenantGroup.Delete("/members/:user_id", middleware.TenantAdmin(tenantRepo), tenantHandler.RemoveMember)
 }
 

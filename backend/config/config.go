@@ -12,6 +12,7 @@ type AppConfig struct {
 	Database DatabaseConfig
 	Redis    RedisConfig
 	JWT      JWTConfig
+	WhatsApp WhatsAppConfig
 }
 
 // AppSetting konfigurasi umum aplikasi
@@ -43,6 +44,13 @@ type JWTConfig struct {
 	Secret           string
 	ExpiryHour       int
 	RefreshExpiryDay int
+}
+
+// WhatsAppConfig konfigurasi GOWA WhatsApp Gateway
+type WhatsAppConfig struct {
+	URL      string
+	Username string
+	Password string
 }
 
 // LoadConfig memuat konfigurasi dari file .env menggunakan Viper
@@ -77,6 +85,11 @@ func LoadConfig() (*AppConfig, error) {
 			Secret:           viper.GetString("JWT_SECRET"),
 			ExpiryHour:       viper.GetInt("JWT_EXPIRY_HOUR"),
 			RefreshExpiryDay: viper.GetInt("JWT_REFRESH_EXPIRY_DAY"),
+		},
+		WhatsApp: WhatsAppConfig{
+			URL:      viper.GetString("WA_URL"),
+			Username: viper.GetString("WA_USERNAME"),
+			Password: viper.GetString("WA_PASSWORD"),
 		},
 	}
 

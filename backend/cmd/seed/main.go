@@ -4,6 +4,7 @@ import (
 "fmt"
 "log"
 "math/rand"
+"time"
 
 "github.com/username/qurban-app/config"
 "github.com/username/qurban-app/internal/model"
@@ -57,27 +58,32 @@ if err != nil {
 return fmt.Errorf("seedAdminDefault: gagal hash password: %w", err)
 }
 
+now := time.Now()
 var existingAdmin model.User
 checkErr := db.Where("phone = ?", adminPhone).First(&existingAdmin).Error
 
 if checkErr == gorm.ErrRecordNotFound {
-// Buat admin baru
+// Buat admin baru dengan verified_at
 admin := &model.User{
-Name:     "ADMIN",
-Phone:    adminPhone,
-IsAdmin:  true,
-Password: &hashedPassword,
+Name:       "ADMIN",
+Phone:      adminPhone,
+IsAdmin:    true,
+Password:   &hashedPassword,
+VerifiedAt: &now,
 }
 if err := db.Create(admin).Error; err != nil {
 return fmt.Errorf("seedAdminDefault: create error: %w", err)
 }
 log.Println("admin default berhasil dibuat")
 } else if checkErr == nil {
-// Update password admin yang sudah ada
-if err := db.Model(&existingAdmin).Update("password", hashedPassword).Error; err != nil {
+// Update password dan verified_at admin yang sudah ada
+if err := db.Model(&existingAdmin).Updates(map[string]interface{}{
+"password":    hashedPassword,
+"verified_at": now,
+}).Error; err != nil {
 return fmt.Errorf("seedAdminDefault: update password error: %w", err)
 }
-log.Println("password admin berhasil diupdate")
+log.Println("password dan verified_at admin berhasil diupdate")
 } else {
 return fmt.Errorf("seedAdminDefault: check error: %w", checkErr)
 }
@@ -104,6 +110,7 @@ if err != nil {
 return fmt.Errorf("seedUsers: gagal hash default password: %w", err)
 }
 
+now := time.Now()
 var users []*model.User
 for i := 1; i <= count; i++ {
 firstName := firstNames[rand.Intn(len(firstNames))]
@@ -112,10 +119,11 @@ phone := fmt.Sprintf("628%010d", rand.Intn(10000000000))
 
 pwd := defaultHashedPassword
 user := &model.User{
-Name:     fmt.Sprintf("%s %s", firstName, lastName),
-Phone:    phone,
-IsAdmin:  false,
-Password: &pwd,
+Name:       fmt.Sprintf("%s %s", firstName, lastName),
+Phone:      phone,
+IsAdmin:    false,
+Password:   &pwd,
+VerifiedAt: &now,
 }
 users = append(users, user)
 }
@@ -124,6 +132,6 @@ if err := db.CreateInBatches(users, 10).Error; err != nil {
 return fmt.Errorf("seedUsers: create error: %w", err)
 }
 
-log.Printf("%d users berhasil dibuat (password: password123)", count)
+log.Printf("%d users berhasil dibuat (password: password123, verified_at: sekarang)", count)
 return nil
 }

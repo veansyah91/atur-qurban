@@ -14,6 +14,7 @@ type UserRepository interface {
 	Create(user *model.User) error
 	UpdateLastLogin(userID string) error
 	UpdatePassword(userID, hashedPassword string) error
+	UpdateVerifiedAt(userID string) error
 	GetAll() ([]model.User, error)
 	Delete(userID string) error
 }
@@ -89,6 +90,14 @@ func (r *userRepository) Delete(userID string) error {
 func (r *userRepository) UpdatePassword(userID, hashedPassword string) error {
 	if err := r.db.Model(&model.User{}).Where("id = ?", userID).Update("password", hashedPassword).Error; err != nil {
 		return fmt.Errorf("UpdatePassword: %w", err)
+	}
+	return nil
+}
+
+// UpdateVerifiedAt mengupdate waktu verifikasi user menjadi sekarang
+func (r *userRepository) UpdateVerifiedAt(userID string) error {
+	if err := r.db.Model(&model.User{}).Where("id = ?", userID).Update("verified_at", gorm.Expr("CURRENT_TIMESTAMP")).Error; err != nil {
+		return fmt.Errorf("UpdateVerifiedAt: %w", err)
 	}
 	return nil
 }

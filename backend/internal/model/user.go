@@ -14,6 +14,7 @@ type User struct {
 	Email       *string            `gorm:"type:varchar(255);uniqueIndex;default:NULL" json:"email"`
 	IsAdmin     bool               `gorm:"type:boolean;default:false" json:"is_admin"`
 	Password    *string            `gorm:"type:varchar(255);default:NULL" json:"-"`
+	VerifiedAt  *time.Time         `gorm:"type:timestamp;default:NULL" json:"verified_at"`
 	LastLoginAt *time.Time         `gorm:"type:timestamp;default:NULL" json:"last_login_at"`
 	CreatedAt   time.Time          `gorm:"autoCreateTime:milli" json:"created_at"`
 	UpdatedAt   time.Time          `gorm:"autoUpdateTime:milli" json:"updated_at"`
@@ -32,6 +33,7 @@ type UserResponse struct {
 	Phone       string     `json:"phone"`
 	Email       *string    `json:"email"`
 	IsAdmin     bool       `json:"is_admin"`
+	VerifiedAt  *time.Time `json:"verified_at"`
 	LastLoginAt *time.Time `json:"last_login_at"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`
@@ -45,6 +47,7 @@ func (u *User) ToResponse() *UserResponse {
 		Phone:       u.Phone,
 		Email:       u.Email,
 		IsAdmin:     u.IsAdmin,
+		VerifiedAt:  u.VerifiedAt,
 		LastLoginAt: u.LastLoginAt,
 		CreatedAt:   u.CreatedAt,
 		UpdatedAt:   u.UpdatedAt,
