@@ -27,7 +27,11 @@ export const useAuthStore = create<AuthStore>()(
 
       setAuth: (user, accessToken, refreshToken) => {
         // Simpan token ke cookie agar bisa dibaca Next.js middleware
-        document.cookie = `token=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}`;
+        // Tambahkan atribut Secure dan SameSite untuk keamanan extra (client-side)
+        const cookieBase = `path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        const secure = window.location.protocol === "https:" ? "; Secure" : "";
+        document.cookie = `token=${accessToken}; ${cookieBase}${secure}`;
+        
         set({ user, accessToken, refreshToken, isAuthenticated: true });
       },
 

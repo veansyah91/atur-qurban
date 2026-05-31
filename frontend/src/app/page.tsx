@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const features = [
   {
@@ -46,34 +47,43 @@ export default function Home() {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <Image
-            src="/assets/logo-horizontal.png"
-            alt="Atur Qurban"
-            width={140}
-            height={40}
-            className="w-[140px] h-auto object-contain"
-            priority
-          />
-          <div className="flex items-center gap-2">
+          <Link href="/">
+            <Image
+              src="/assets/logo-horizontal.png"
+              alt="Atur Qurban"
+              width={140}
+              height={40}
+              className="w-[140px] h-auto object-contain"
+              priority
+            />
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link
+              href="/donate"
+              className="hidden sm:block"
+            >
+              <Button variant="secondary" size="sm">Donasi</Button>
+            </Link>
+            <div className="h-6 w-[1px] bg-gray-200 hidden sm:block mx-1"></div>
             <Link
               href="/login"
-              className="text-sm font-medium text-primary hover:text-primary-dark px-4 py-2 rounded-lg transition-colors"
             >
-              Masuk
+              <Button variant="ghost" size="sm">Masuk</Button>
             </Link>
             <Link
               href="/register"
-              className="text-sm font-medium text-white bg-primary hover:bg-primary-dark px-4 py-2 rounded-lg transition-colors"
             >
-              Daftar
+              <Button size="sm">Daftar</Button>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-primary text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-32 text-center">
+      <section className="bg-primary text-white overflow-hidden relative">
+        {/* Simple decorative element */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-light rounded-full -mr-32 -mt-32 opacity-50 blur-3xl"></div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-32 text-center relative z-10">
           <span className="inline-block bg-accent text-white text-xs font-semibold px-3 py-1 rounded-full mb-6 uppercase tracking-wide">
             Gratis Selamanya
           </span>
@@ -82,16 +92,22 @@ export default function Home() {
             <br className="hidden sm:block" />
             Lebih Mudah &amp; Digital
           </h1>
-          <p className="text-base sm:text-lg text-green-100 max-w-xl mx-auto mb-10">
+          <p className="text-base sm:text-lg text-green-50 max-w-xl mx-auto mb-10 opacity-90">
             Platform manajemen qurban digital — dari tabungan, kupon, hingga
             distribusi daging — semua dalam satu aplikasi, tanpa biaya.
           </p>
-          <Link
-            href="/register"
-            className="inline-block bg-accent hover:bg-accent-dark text-white font-semibold text-base px-8 py-3 rounded-lg transition-colors shadow-md"
-          >
-            Mulai Sekarang
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/register">
+              <Button size="lg" variant="secondary" className="px-10 py-6 text-lg font-bold">
+                Mulai Sekarang
+              </Button>
+            </Link>
+            <Link href="/donate" className="sm:hidden">
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 px-10 py-6 text-lg">
+                Donasi
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

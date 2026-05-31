@@ -85,85 +85,83 @@ export default function ResetPasswordPage() {
   if (!phone) return null; // loading state
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Reset Password
-          </CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">
-            Masukkan OTP yang dikirim ke <strong>{phone}</strong> beserta password baru Anda.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm font-medium">
-                  {error}
-                </div>
+    <Card className="border-none shadow-lg">
+      <CardHeader className="space-y-2 text-center">
+        <CardTitle className="text-2xl font-bold tracking-tight">
+          Reset Password
+        </CardTitle>
+        <CardDescription className="text-sm text-muted-foreground">
+          Masukkan OTP yang dikirim ke <strong>{phone}</strong> beserta password baru Anda.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {error && (
+              <div className="p-3 rounded-md bg-red-50 text-red-500 text-sm font-medium">
+                {error}
+              </div>
+            )}
+            
+            <FormField
+              control={form.control}
+              name="otp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kode OTP</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="000000"
+                      maxLength={6}
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              
-              <FormField
-                control={form.control}
-                name="otp"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Kode OTP</FormLabel>
-                    <FormControl>
+            />
+
+            <FormField
+              control={form.control}
+              name="new_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password Baru</FormLabel>
+                  <FormControl>
+                    <div className="relative">
                       <Input
-                        placeholder="000000"
-                        maxLength={6}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
                         disabled={isLoading}
                         {...field}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="new_password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password Baru</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          disabled={isLoading}
-                          {...field}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4 text-slate-400" />
-                          ) : (
-                            <Eye className="h-4 w-4 text-slate-400" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : "Simpan Password Baru"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-slate-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-slate-400" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Menyimpan..." : "Simpan Password Baru"}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

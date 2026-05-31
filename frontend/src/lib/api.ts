@@ -25,8 +25,15 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Pastikan tidak retry jika URL adalah refresh token atau login
+    const isRefreshRequest = originalRequest.url?.includes("/auth/refresh");
+
     // Handle 401: Unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 && 
+      !originalRequest._retry && 
+      !isRefreshRequest
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -39,13 +46,13 @@ api.interceptors.response.use(
         const data = await refreshAccessToken(refreshTokenStr);
         useAuthStore.getState().setAuth(data.user, data.access_token, data.refresh_token);
 
-        // Retry request
+        // Retry request dengan token baru
         originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().clearAuth();
         if (typeof window !== "undefined") {
-           window.location.href = "/login";
+           window.location.href = "/login?expired=true";
         }
       }
     }

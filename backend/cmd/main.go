@@ -38,6 +38,25 @@ func main() {
 		AppName: "Qurban App v1.0",
 	})
 
+	// Konfigurasi CORS
+	app.Use(func(c *fiber.Ctx) error {
+		origin := c.Get("Origin")
+		// Dalam produksi, ganti dengan whitelist domain frontend Anda yang sebenarnya
+		// Contoh: if origin == "https://app.aturqurban.com" { ... }
+		if origin != "" {
+			c.Set("Access-Control-Allow-Origin", origin)
+		}
+		c.Set("Access-Control-Allow-Credentials", "true")
+		c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+
+		if c.Method() == "OPTIONS" {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+
+		return c.Next()
+	})
+
 	// Daftarkan semua route
 	router.NewRouter(app, db, rdb)
 

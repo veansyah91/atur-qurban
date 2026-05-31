@@ -11,19 +11,23 @@ import (
 // JWTAuth middleware untuk validasi JWT token
 func JWTAuth(authService service.AuthService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Ambil Authorization header
-		authHeader := c.Get("Authorization")
-		if authHeader == "" {
-			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "authorization header tidak ditemukan")
+		// Ambil token dari cookie atau Authorization header
+		token := c.Cookies("access_token")
+
+		if token == "" {
+			// Fallback ke Authorization header
+			authHeader := c.Get("Authorization")
+			if authHeader != "" {
+				parts := strings.Split(authHeader, " ")
+				if len(parts) == 2 && parts[0] == "Bearer" {
+					token = parts[1]
+				}
+			}
 		}
 
-		// Extract token (remove "Bearer " prefix)
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "format authorization header salah")
+		if token == "" {
+			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "autentikasi diperlukan")
 		}
-
-		token := parts[1]
 
 		// Validasi token
 		claims, err := authService.ValidateToken(token)

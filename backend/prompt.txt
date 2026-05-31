@@ -1,13 +1,9 @@
 buat issue.md untuk planning:
 
-Task: modifikasi tenant
+Task: modifikasi auth
 
-- lakukan validasi logo dengan ukuran 1MB
-- simpan logo pada storage backend, namun siapkan opsi (.env.example) untuk penyimpaan s3
-- pelajari lebih dalam untuk kebutuhan penyimpanan file berupa image atau yang serupa
-- lakukan testing tanpa hit database
-- lakukan code review setelah melakukan test
-- modifikasi documentation/tenant.md
+- lakukan code review pada update auth
+- perbaiki dokumentasi pada documentation/auth.md
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 

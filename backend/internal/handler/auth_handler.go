@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/username/qurban-app/config"
@@ -66,6 +67,54 @@ type TokenResponse struct {
 User         *model.UserResponse `json:"user"`
 AccessToken  string              `json:"access_token"`
 RefreshToken string              `json:"refresh_token"`
+}
+
+// Helper untuk set cookie
+func (h *AuthHandler) setTokenCookies(c *fiber.Ctx, accessToken, refreshToken string) {
+	cookieSecure := h.cfg.App.Env == "production"
+
+	// Access Token Cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		Expires:  time.Now().Add(time.Duration(h.cfg.JWT.ExpiryHour) * time.Hour),
+		HTTPOnly: true,
+		Secure:   cookieSecure,
+		SameSite: "Lax",
+	})
+
+	// Refresh Token Cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(time.Duration(h.cfg.JWT.RefreshExpiryDay) * 24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   cookieSecure,
+		SameSite: "Lax",
+	})
+}
+
+// Helper untuk hapus cookie
+func (h *AuthHandler) clearTokenCookies(c *fiber.Ctx) {
+	cookieSecure := h.cfg.App.Env == "production"
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+		Secure:   cookieSecure,
+		SameSite: "Lax",
+	})
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+		Secure:   cookieSecure,
+		SameSite: "Lax",
+	})
 }
 
 // @Summary     Resend OTP registrasi
@@ -195,10 +244,10 @@ func (h *AuthHandler) VerifyRegisterOTP(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "gagal verifikasi OTP")
 	}
 
+	h.setTokenCookies(c, accessToken, refreshToken)
+
 	return utils.SuccessResponse(c, "registrasi berhasil", fiber.Map{
-		"user":          userResp,
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
+		"user": userResp,
 	})
 }
 
@@ -250,10 +299,10 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "gagal login: "+err.Error())
 	}
 
+	h.setTokenCookies(c, accessToken, refreshToken)
+
 	return utils.SuccessResponse(c, "login berhasil", fiber.Map{
-		"user":          userResp,
-		"access_token":  accessToken,
-		"refresh_token": refreshToken,
+		"user": userResp,
 	})
 }
 
@@ -270,16 +319,13 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Router      /api/v1/auth/refresh [post]
 // RefreshToken handler — POST /api/v1/auth/refresh
 func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
-	var req RefreshTokenRequest
-	if err := c.BodyParser(&req); err != nil {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, "invalid request body")
+	refreshToken := c.Cookies("refresh_token")
+
+	if refreshToken == "" {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, "refresh_token tidak ditemukan di cookie")
 	}
 
-	if req.RefreshToken == "" {
-		return utils.ErrorResponse(c, fiber.StatusBadRequest, "refresh_token harus diisi")
-	}
-
-	newAccessToken, newRefreshToken, err := h.authService.RefreshToken(req.RefreshToken)
+	newAccessToken, newRefreshToken, err := h.authService.RefreshToken(refreshToken)
 	if err != nil {
 		if errors.Is(err, service.ErrTokenBlacklisted) {
 			return utils.ErrorResponse(c, fiber.StatusUnauthorized, "token sudah invalid")
@@ -287,10 +333,9 @@ func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "gagal refresh token: "+err.Error())
 	}
 
-	return utils.SuccessResponse(c, "refresh token berhasil", fiber.Map{
-		"access_token":  newAccessToken,
-		"refresh_token": newRefreshToken,
-	})
+	h.setTokenCookies(c, newAccessToken, newRefreshToken)
+
+	return utils.SuccessResponse(c, "refresh token berhasil", nil)
 }
 
 // @Summary     Logout pengguna
@@ -305,17 +350,22 @@ func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
 // @Router      /api/v1/auth/logout [post]
 // Logout handler — POST /api/v1/auth/logout (protected)
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
-	token := c.Get("Authorization")
+	token := c.Cookies("access_token")
 	if token == "" {
-		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "authorization header tidak ditemukan")
-	}
-	if len(token) > 7 && token[:7] == "Bearer " {
-		token = token[7:]
+		// Fallback to Header for flexibility during transition
+		token = c.Get("Authorization")
+		if len(token) > 7 && token[:7] == "Bearer " {
+			token = token[7:]
+		}
 	}
 
-	if err := h.authService.Logout(c.Context(), token); err != nil {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "gagal logout: "+err.Error())
+	if token != "" {
+		if err := h.authService.Logout(c.Context(), token); err != nil {
+			return utils.ErrorResponse(c, fiber.StatusInternalServerError, "gagal logout: "+err.Error())
+		}
 	}
+
+	h.clearTokenCookies(c)
 
 	return utils.SuccessResponse(c, "logout berhasil", nil)
 }
