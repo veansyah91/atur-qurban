@@ -51,7 +51,7 @@ export default function Home() {
             alt="Atur Qurban"
             width={140}
             height={40}
-            className="object-contain"
+            className="w-[140px] h-auto object-contain"
             priority
           />
           <div className="flex items-center gap-2">
@@ -154,7 +154,8 @@ export default function Home() {
               alt="Keuangan Umum"
               width={120}
               height={40}
-              className="object-contain rounded"
+              className="w-[120px] h-auto object-contain rounded"
+              loading="eager"
             />
           </a>
           <p className="text-xs text-gray-400">

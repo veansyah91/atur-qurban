@@ -1,8 +1,10 @@
 buat issue.md planning:
 
-- buatkan code review untuk halaman home: http://localhost:3000/
-catatan:
-saat ini ketika halaman home diakses, maka yang ditampikan adalah 404
+- buat fitur authentication, jadikan backend-documentation/auth.md sebagai referensi dan buat semua kebutuhan auth sebagaimana backend-documentation/auth.md
+- pastikan flow register benar, yaitu sebagai berikut:
+  register -> halaman verifikasi
+- optimalkan fitur auth jika ada hal lainnya yang dibutuhkan, pelajari lebih dalam
+- gunakan asset-asset image untuk kebutuhan halaman authentication
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 
