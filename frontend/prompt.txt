@@ -1,0 +1,10 @@
+buat issue.md planning:
+
+- buatkan code review untuk halaman home: http://localhost:3000/
+catatan:
+saat ini ketika halaman home diakses, maka yang ditampikan adalah 404
+
+Jangan terlalu low level atau detail
+Cukup instruksikan high level 
+
+Nanti dokumen planningnya akan digunakan oleh model AI yang lebih murah untuk diimplementasikan.

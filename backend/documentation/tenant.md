@@ -18,7 +18,7 @@ Notes:
 - Auth: Bearer token
 - Request JSON:
 ```json
-{ "name": "Kelompok Masjid Al-Ikhlas" }
+{ "name": "Kelompok Masjid Al-Ikhlas", "logo": "https://example.com/logo.png" }
 ```
 - Success (201) sample:
 ```json
@@ -30,6 +30,7 @@ Notes:
     "name": "Kelompok Masjid Al-Ikhlas",
     "slug": "kelompok-masjid-al-ikhlas",
     "status": "free",
+    "logo": "https://example.com/logo.png",
     "expired_at": null,
     "owner_id": "uuid",
     "created_at": "...",
@@ -60,10 +61,11 @@ Notes:
 {
   "name": "Nama Baru",
   "address": "Jl. Sudirman No. 1, Jakarta",
-  "description": "Deskripsi kelompok qurban"
+  "description": "Deskripsi kelompok qurban",
+  "logo": "https://example.com/logo-baru.png"
 }
 ```
-- Catatan: `address` dan `description` bersifat **opsional** — boleh tidak dikirim atau di-set ke `null`.
+- Catatan: `address`, `description`, dan `logo` bersifat **opsional** — boleh tidak dikirim atau di-set ke `null`.
 - Success (200) sample:
 ```json
 {
@@ -76,6 +78,7 @@ Notes:
     "status": "free",
     "address": "Jl. Sudirman No. 1, Jakarta",
     "description": "Deskripsi kelompok qurban",
+    "logo": "https://example.com/logo-baru.png",
     "expired_at": null,
     "owner_id": "uuid",
     "created_at": "...",

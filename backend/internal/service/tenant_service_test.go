@@ -134,6 +134,39 @@ func (m *MockTenantRepository) IsSlugTaken(ctx context.Context, slug, excludeID 
 	return args.Get(0).(bool), args.Error(1)
 }
 
+// MockContactCategoryRepositoryForTenant mock untuk ContactCategoryRepository (digunakan di tenant service test)
+type MockContactCategoryRepositoryForTenant struct {
+	mock.Mock
+}
+
+func (m *MockContactCategoryRepositoryForTenant) Create(ctx context.Context, category *model.ContactCategory) error {
+	return m.Called(ctx, category).Error(0)
+}
+
+func (m *MockContactCategoryRepositoryForTenant) FindByTenantID(ctx context.Context, tenantID string) ([]*model.ContactCategory, error) {
+	args := m.Called(ctx, tenantID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*model.ContactCategory), args.Error(1)
+}
+
+func (m *MockContactCategoryRepositoryForTenant) FindByID(ctx context.Context, id string) (*model.ContactCategory, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*model.ContactCategory), args.Error(1)
+}
+
+func (m *MockContactCategoryRepositoryForTenant) Update(ctx context.Context, category *model.ContactCategory) error {
+	return m.Called(ctx, category).Error(0)
+}
+
+func (m *MockContactCategoryRepositoryForTenant) Delete(ctx context.Context, id string) error {
+	return m.Called(ctx, id).Error(0)
+}
+
 // MockNotificationServiceForTenant mock untuk NotificationService
 type MockNotificationServiceForTenant struct {
 	mock.Mock
@@ -148,6 +181,7 @@ func TestCreateTenant_FirstTenant(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	userID := "user-123"
@@ -163,6 +197,7 @@ func TestCreateTenant_FirstTenant(t *testing.T) {
 			return m.UserID == userID && m.Role == "admin"
 		}),
 	).Return(nil)
+	mockCategoryRepo.On("Create", ctx, mock.Anything).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
 	mockUserRepo.On("FindByID", userID).Return(&model.User{ID: userID, Phone: "+6281234567890"}, nil)
@@ -170,8 +205,8 @@ func TestCreateTenant_FirstTenant(t *testing.T) {
 		return len(msg) > 0
 	})).Return(nil)
 
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.CreateTenant(ctx, userID, tenantName)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.CreateTenant(ctx, userID, tenantName, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, tenant)
@@ -188,6 +223,7 @@ func TestCreateTenant_SecondTenant(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	userID := "user-123"
@@ -203,6 +239,7 @@ func TestCreateTenant_SecondTenant(t *testing.T) {
 			return m.UserID == userID && m.Role == "admin"
 		}),
 	).Return(nil)
+	mockCategoryRepo.On("Create", ctx, mock.Anything).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
 	mockUserRepo.On("FindByID", userID).Return(&model.User{ID: userID, Phone: "+6281234567890"}, nil)
@@ -210,8 +247,8 @@ func TestCreateTenant_SecondTenant(t *testing.T) {
 		return len(msg) > 0
 	})).Return(nil)
 
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.CreateTenant(ctx, userID, tenantName)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.CreateTenant(ctx, userID, tenantName, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, tenant)
@@ -227,6 +264,7 @@ func TestGetTenantByID(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -241,7 +279,7 @@ func TestGetTenantByID(t *testing.T) {
 	mockRepo.On("GetTenantByID", ctx, tenantID).Return(expectedTenant, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	tenant, err := service.GetTenantByID(ctx, tenantID)
 
 	assert.NoError(t, err)
@@ -254,6 +292,7 @@ func TestGetTenantByID_NotFound(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-invalid"
@@ -261,7 +300,7 @@ func TestGetTenantByID_NotFound(t *testing.T) {
 	mockRepo.On("GetTenantByID", ctx, tenantID).Return(nil, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	_, err := service.GetTenantByID(ctx, tenantID)
 
 	assert.Error(t, err)
@@ -274,6 +313,7 @@ func TestUpdateTenant_AdminCanUpdate(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -292,8 +332,8 @@ func TestUpdateTenant_AdminCanUpdate(t *testing.T) {
 	})).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.UpdateTenant(ctx, tenantID, userID, newName, nil, nil)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.UpdateTenant(ctx, tenantID, userID, newName, nil, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, newName, tenant.Name)
@@ -305,6 +345,7 @@ func TestUpdateTenant_NonAdminCannotUpdate(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -313,8 +354,8 @@ func TestUpdateTenant_NonAdminCannotUpdate(t *testing.T) {
 	mockRepo.On("IsTenantAdmin", ctx, tenantID, userID).Return(false, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	_, err := service.UpdateTenant(ctx, tenantID, userID, "New Name", nil, nil)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	_, err := service.UpdateTenant(ctx, tenantID, userID, "New Name", nil, nil, nil)
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "user bukan admin")
@@ -326,6 +367,7 @@ func TestInviteTenantMember(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -342,7 +384,7 @@ func TestInviteTenantMember(t *testing.T) {
 		member.ID = "member-123"
 	}).Return(nil)
 
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	member, err := service.InviteTenantMember(ctx, tenantID, invitedUserID, invitedBy)
 
 	assert.NoError(t, err)
@@ -358,6 +400,7 @@ func TestInviteTenantMember_AlreadyMember(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -368,7 +411,7 @@ func TestInviteTenantMember_AlreadyMember(t *testing.T) {
 	mockUserRepo.On("FindByID", invitedUserID).Return(&model.User{ID: invitedUserID, Phone: "+6289876543210"}, nil)
 	mockRepo.On("IsTenantMember", ctx, tenantID, invitedUserID).Return(true, nil)
 
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	_, err := service.InviteTenantMember(ctx, tenantID, invitedUserID, invitedBy)
 
 	assert.Error(t, err)
@@ -382,6 +425,7 @@ func TestInviteTenantMember_UserNotFound(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -391,7 +435,7 @@ func TestInviteTenantMember_UserNotFound(t *testing.T) {
 	mockUserRepo := new(MockUserRepositoryForTenant)
 	mockUserRepo.On("FindByID", invitedUserID).Return(nil, nil)
 
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	_, err := service.InviteTenantMember(ctx, tenantID, invitedUserID, invitedBy)
 
 	assert.Error(t, err)
@@ -405,6 +449,7 @@ func TestRemoveTenantMember_AdminCanRemove(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -420,7 +465,7 @@ func TestRemoveTenantMember_AdminCanRemove(t *testing.T) {
 	mockRepo.On("RemoveTenantMember", ctx, tenantID, memberUserID).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	err := service.RemoveTenantMember(ctx, tenantID, memberUserID, requesterID)
 
 	assert.NoError(t, err)
@@ -432,6 +477,7 @@ func TestRemoveTenantMember_NonAdminCannotRemove(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -441,7 +487,7 @@ func TestRemoveTenantMember_NonAdminCannotRemove(t *testing.T) {
 	mockRepo.On("IsTenantAdmin", ctx, tenantID, requesterID).Return(false, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	err := service.RemoveTenantMember(ctx, tenantID, memberUserID, requesterID)
 
 	assert.Error(t, err)
@@ -454,6 +500,7 @@ func TestRemoveTenantMember_CannotRemoveOwner(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -467,7 +514,7 @@ func TestRemoveTenantMember_CannotRemoveOwner(t *testing.T) {
 	}, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	err := service.RemoveTenantMember(ctx, tenantID, ownerID, requesterID)
 
 	assert.Error(t, err)
@@ -480,6 +527,7 @@ func TestDeleteTenant_AdminCanDelete(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -489,7 +537,7 @@ func TestDeleteTenant_AdminCanDelete(t *testing.T) {
 	mockRepo.On("DeleteTenant", ctx, tenantID).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	err := service.DeleteTenant(ctx, tenantID, userID)
 
 	assert.NoError(t, err)
@@ -501,6 +549,7 @@ func TestDeleteTenant_NonAdminCannotDelete(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -509,7 +558,7 @@ func TestDeleteTenant_NonAdminCannotDelete(t *testing.T) {
 	mockRepo.On("IsTenantAdmin", ctx, tenantID, userID).Return(false, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	err := service.DeleteTenant(ctx, tenantID, userID)
 
 	assert.Error(t, err)
@@ -522,6 +571,7 @@ func TestGetUserTenants(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	userID := "user-123"
@@ -533,7 +583,7 @@ func TestGetUserTenants(t *testing.T) {
 	mockRepo.On("GetTenantsByUserID", ctx, userID).Return(tenants, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	result, err := service.GetUserTenants(ctx, userID)
 
 	assert.NoError(t, err)
@@ -546,6 +596,7 @@ func TestGetTenantMembers(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -557,7 +608,7 @@ func TestGetTenantMembers(t *testing.T) {
 	mockRepo.On("GetTenantMembers", ctx, tenantID).Return(members, nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
 	result, err := service.GetTenantMembers(ctx, tenantID)
 
 	assert.NoError(t, err)
@@ -570,6 +621,7 @@ func TestCreateTenant_TransactionRollback(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	userID := "user-123"
@@ -581,8 +633,8 @@ func TestCreateTenant_TransactionRollback(t *testing.T) {
 	mockRepo.On("CreateTenantWithMember", ctx, mock.Anything, mock.Anything).Return(errors.New("transaction failed"))
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.CreateTenant(ctx, userID, tenantName)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.CreateTenant(ctx, userID, tenantName, nil)
 
 	assert.Error(t, err)
 	assert.Nil(t, tenant)
@@ -593,6 +645,7 @@ func TestCreateTenant_TransactionRollback(t *testing.T) {
 func TestCreateTenant_SlugCollision(t *testing.T) {	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	userID := "user-123"
@@ -613,9 +666,10 @@ func TestCreateTenant_SlugCollision(t *testing.T) {	ctx := context.Background()
 	mockUserRepo := new(MockUserRepositoryForTenant)
 	mockUserRepo.On("FindByID", userID).Return(&model.User{ID: userID, Phone: "+6281234567890"}, nil)
 	mockNotif.On("Send", ctx, "+6281234567890", mock.Anything).Return(nil)
+	mockCategoryRepo.On("Create", ctx, mock.Anything).Return(nil)
 
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.CreateTenant(ctx, userID, tenantName)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.CreateTenant(ctx, userID, tenantName, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, tenant)
@@ -628,6 +682,7 @@ func TestUpdateTenant_WithAddressAndDescription(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -648,8 +703,8 @@ func TestUpdateTenant_WithAddressAndDescription(t *testing.T) {
 	})).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.UpdateTenant(ctx, tenantID, userID, newName, &addr, &desc)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.UpdateTenant(ctx, tenantID, userID, newName, &addr, &desc, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, newName, tenant.Name)
@@ -665,6 +720,7 @@ func TestUpdateTenant_WithNilOptionalFields(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockTenantRepository)
 	mockNotif := new(MockNotificationServiceForTenant)
+	mockCategoryRepo := new(MockContactCategoryRepositoryForTenant)
 	logger := log.New(io.Discard, "", 0)
 
 	tenantID := "tenant-123"
@@ -683,8 +739,8 @@ func TestUpdateTenant_WithNilOptionalFields(t *testing.T) {
 	})).Return(nil)
 
 	mockUserRepo := new(MockUserRepositoryForTenant)
-	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, logger)
-	tenant, err := service.UpdateTenant(ctx, tenantID, userID, newName, nil, nil)
+	service := NewTenantService(mockRepo, mockUserRepo, mockNotif, mockCategoryRepo, logger)
+	tenant, err := service.UpdateTenant(ctx, tenantID, userID, newName, nil, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, newName, tenant.Name)

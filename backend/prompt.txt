@@ -1,26 +1,13 @@
 buat issue.md untuk planning:
 
-Task: Buat contact category dan contact
+Task: modifikasi tenant
 
-- dimiliki oleh tenant
-- contact category =  {
-  name: string
-}
-- contact = {
-  contact_category_id: FK
-  name: string,
-  is_active: boolean (default: true),
-  address: string (nullable),
-  phone: string (nullabe)
-}
-- data default contact category = [
-  {
-    name: 'umum'
-  },
-]
-- buat seeder contact berjumlah 20
-- setelah melakukan unit test, maka lakukan code review
-- buat documentation/contact_category.md dan documentation/contact.md
+- lakukan validasi logo dengan ukuran 1MB
+- simpan logo pada storage backend, namun siapkan opsi (.env.example) untuk penyimpaan s3
+- pelajari lebih dalam untuk kebutuhan penyimpanan file berupa image atau yang serupa
+- lakukan testing tanpa hit database
+- lakukan code review setelah melakukan test
+- modifikasi documentation/tenant.md
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 

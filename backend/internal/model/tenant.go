@@ -30,6 +30,7 @@ type Tenant struct {
 	Status      string         `gorm:"type:varchar(50);not null;default:'free'" json:"status"`
 	Address     *string        `gorm:"type:varchar(500);default:NULL" json:"address"`
 	Description *string        `gorm:"type:text;default:NULL" json:"description"`
+	Logo        *string        `gorm:"type:varchar(500);default:NULL" json:"logo"`
 	ExpiredAt   *time.Time     `gorm:"type:timestamp;default:NULL" json:"expired_at"`
 	OwnerID     string         `gorm:"type:uuid;not null" json:"owner_id"`
 	CreatedAt   time.Time      `gorm:"autoCreateTime:milli" json:"created_at"`
@@ -68,6 +69,7 @@ type TenantResponse struct {
 	Status      string     `json:"status"`
 	Address     *string    `json:"address"`
 	Description *string    `json:"description"`
+	Logo        *string    `json:"logo"`
 	ExpiredAt   *time.Time `json:"expired_at"`
 	OwnerID     string     `json:"owner_id"`
 	CreatedAt   time.Time  `json:"created_at"`
@@ -83,6 +85,7 @@ func (t *Tenant) ToResponse() *TenantResponse {
 		Status:      t.Status,
 		Address:     t.Address,
 		Description: t.Description,
+		Logo:        t.Logo,
 		ExpiredAt:   t.ExpiredAt,
 		OwnerID:     t.OwnerID,
 		CreatedAt:   t.CreatedAt,

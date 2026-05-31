@@ -51,6 +51,8 @@ func NewRouter(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
 	tenantRepo := repository.NewTenantRepository(db)
+	contactCategoryRepo := repository.NewContactCategoryRepository(db)
+	contactRepo := repository.NewContactRepository(db)
 
 	// Initialize GOWA WhatsApp client
 	waClient := whatsapp.NewClient(
@@ -68,7 +70,9 @@ func NewRouter(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	// Initialize services
 	notificationService := service.NewNotificationService(notifQueue)
 	authService := service.NewAuthService(userRepo, rdb, cfg, notificationService, logger)
-	tenantService := service.NewTenantService(tenantRepo, userRepo, notificationService, logger)
+	tenantService := service.NewTenantService(tenantRepo, userRepo, notificationService, contactCategoryRepo, logger)
+	contactCategoryService := service.NewContactCategoryService(contactCategoryRepo)
+	contactService := service.NewContactService(contactRepo, contactCategoryRepo)
 	notifWorker := worker.NewNotificationWorker(notifQueue, waClient, logger)
 
 	// Start notification worker
@@ -77,6 +81,8 @@ func NewRouter(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	// Initialize handlers
 	authHandler := handler.NewAuthHandler(authService, cfg)
 	tenantHandler := handler.NewTenantHandler(tenantService)
+	contactCategoryHandler := handler.NewContactCategoryHandler(contactCategoryService)
+	contactHandler := handler.NewContactHandler(contactService)
 
 	// Grup API versi 1
 	api := app.Group("/api/v1")
@@ -108,5 +114,18 @@ func NewRouter(app *fiber.App, db *gorm.DB, rdb *redis.Client) {
 	tenantGroup.Delete("", middleware.TenantAdmin(tenantRepo), tenantHandler.DeleteTenant)
 	tenantGroup.Post("/members", middleware.TenantAdmin(tenantRepo), tenantHandler.InviteMember)
 	tenantGroup.Delete("/members/:user_id", middleware.TenantAdmin(tenantRepo), tenantHandler.RemoveMember)
+
+	// Contact category routes
+	tenantGroup.Get("/contact-categories", contactCategoryHandler.ListCategories)
+	tenantGroup.Post("/contact-categories", middleware.TenantAdmin(tenantRepo), contactCategoryHandler.CreateCategory)
+	tenantGroup.Put("/contact-categories/:cat_id", middleware.TenantAdmin(tenantRepo), contactCategoryHandler.UpdateCategory)
+	tenantGroup.Delete("/contact-categories/:cat_id", middleware.TenantAdmin(tenantRepo), contactCategoryHandler.DeleteCategory)
+
+	// Contact routes
+	tenantGroup.Get("/contacts", contactHandler.ListContacts)
+	tenantGroup.Post("/contacts", middleware.TenantAdmin(tenantRepo), contactHandler.CreateContact)
+	tenantGroup.Get("/contacts/:contact_id", contactHandler.GetContact)
+	tenantGroup.Put("/contacts/:contact_id", middleware.TenantAdmin(tenantRepo), contactHandler.UpdateContact)
+	tenantGroup.Delete("/contacts/:contact_id", middleware.TenantAdmin(tenantRepo), contactHandler.DeleteContact)
 }
 

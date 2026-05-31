@@ -15,10 +15,10 @@ import (
 
 // TenantService interface untuk operasi tenant
 type TenantService interface {
-	CreateTenant(ctx context.Context, userID, name string) (*model.Tenant, error)
+	CreateTenant(ctx context.Context, userID, name string, logo *string) (*model.Tenant, error)
 	GetTenantByID(ctx context.Context, id string) (*model.Tenant, error)
 	GetUserTenants(ctx context.Context, userID string) ([]*model.Tenant, error)
-	UpdateTenant(ctx context.Context, tenantID, userID, name string, address, description *string) (*model.Tenant, error)
+	UpdateTenant(ctx context.Context, tenantID, userID, name string, address, description, logo *string) (*model.Tenant, error)
 	DeleteTenant(ctx context.Context, tenantID, userID string) error
 	InviteTenantMember(ctx context.Context, tenantID, invitedUserID, invitedBy string) (*model.TenantMember, error)
 	GetTenantMembers(ctx context.Context, tenantID string) ([]*model.TenantMember, error)
@@ -30,11 +30,12 @@ type tenantService struct {
 	tenantRepo          repository.TenantRepository
 	userRepo            repository.UserRepository
 	notificationService NotificationService
+	contactCategoryRepo repository.ContactCategoryRepository
 	logger              *log.Logger
 }
 
 // NewTenantService membuat instance baru TenantService
-func NewTenantService(tenantRepo repository.TenantRepository, userRepo repository.UserRepository, notifService NotificationService, logger *log.Logger) TenantService {
+func NewTenantService(tenantRepo repository.TenantRepository, userRepo repository.UserRepository, notifService NotificationService, contactCategoryRepo repository.ContactCategoryRepository, logger *log.Logger) TenantService {
 	if logger == nil {
 		logger = log.New(io.Discard, "", 0)
 	}
@@ -42,12 +43,13 @@ func NewTenantService(tenantRepo repository.TenantRepository, userRepo repositor
 		tenantRepo:          tenantRepo,
 		userRepo:            userRepo,
 		notificationService: notifService,
+		contactCategoryRepo: contactCategoryRepo,
 		logger:              logger,
 	}
 }
 
 // CreateTenant membuat tenant baru dengan logika business
-func (s *tenantService) CreateTenant(ctx context.Context, userID, name string) (*model.Tenant, error) {
+func (s *tenantService) CreateTenant(ctx context.Context, userID, name string, logo *string) (*model.Tenant, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("CreateTenant: userID tidak boleh kosong")
 	}
@@ -81,6 +83,7 @@ func (s *tenantService) CreateTenant(ctx context.Context, userID, name string) (
 		Name:      name,
 		Slug:      slug,
 		Status:    string(status),
+		Logo:      logo,
 		ExpiredAt: expiredAt,
 		OwnerID:   userID,
 	}
@@ -97,6 +100,17 @@ func (s *tenantService) CreateTenant(ctx context.Context, userID, name string) (
 	// Buat tenant dan member dalam satu transaksi — rollback jika salah satu gagal
 	if err := s.tenantRepo.CreateTenantWithMember(ctx, tenant, member); err != nil {
 		return nil, fmt.Errorf("CreateTenant: %w", err)
+	}
+
+	// Buat kategori kontak default untuk tenant baru
+	defaultCategory := &model.ContactCategory{
+		ID:       uuid.New().String(),
+		TenantID: tenant.ID,
+		Name:     "umum",
+	}
+	if err := s.contactCategoryRepo.Create(ctx, defaultCategory); err != nil {
+		s.logger.Printf("CreateTenant: gagal buat kategori default: %v\n", err)
+		// tidak return error, lanjut saja
 	}
 
 	// Kirim notifikasi WhatsApp ke pembuat tenant
@@ -172,7 +186,7 @@ func (s *tenantService) GetUserTenants(ctx context.Context, userID string) ([]*m
 }
 
 // UpdateTenant mengupdate data tenant (hanya admin yang bisa)
-func (s *tenantService) UpdateTenant(ctx context.Context, tenantID, userID, name string, address, description *string) (*model.Tenant, error) {
+func (s *tenantService) UpdateTenant(ctx context.Context, tenantID, userID, name string, address, description, logo *string) (*model.Tenant, error) {
 	if tenantID == "" {
 		return nil, fmt.Errorf("UpdateTenant: tenantID tidak boleh kosong")
 	}
@@ -210,6 +224,7 @@ func (s *tenantService) UpdateTenant(ctx context.Context, tenantID, userID, name
 	tenant.Slug = newSlug
 	tenant.Address = address
 	tenant.Description = description
+	tenant.Logo = logo
 
 	if err := s.tenantRepo.UpdateTenant(ctx, tenant); err != nil {
 		return nil, fmt.Errorf("UpdateTenant: %w", err)

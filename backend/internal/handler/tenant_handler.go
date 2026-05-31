@@ -20,7 +20,8 @@ func NewTenantHandler(tenantService service.TenantService) *TenantHandler {
 
 // CreateTenantRequest body request untuk create tenant
 type CreateTenantRequest struct {
-	Name string `json:"name" validate:"required,min=3,max=255"`
+	Name string  `json:"name" validate:"required,min=3,max=255"`
+	Logo *string `json:"logo"`
 }
 
 // CreateTenant
@@ -51,7 +52,7 @@ func (h *TenantHandler) CreateTenant(c *fiber.Ctx) error {
 	}
 
 	// Create tenant di service
-	tenant, err := h.tenantService.CreateTenant(c.Context(), userID.(string), req.Name)
+	tenant, err := h.tenantService.CreateTenant(c.Context(), userID.(string), req.Name, req.Logo)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "gagal membuat tenant")
 	}
@@ -88,6 +89,7 @@ func (h *TenantHandler) GetTenants(c *fiber.Ctx) error {
 			"name":       t.Name,
 			"slug":       t.Slug,
 			"status":     t.Status,
+			"logo":       t.Logo,
 			"expired_at": t.ExpiredAt,
 			"owner_id":   t.OwnerID,
 			"created_at": t.CreatedAt,
@@ -129,6 +131,7 @@ type UpdateTenantRequest struct {
 	Name        string  `json:"name" validate:"required,min=3,max=255"`
 	Address     *string `json:"address"`
 	Description *string `json:"description"`
+	Logo        *string `json:"logo"`
 }
 
 // UpdateTenant
@@ -162,7 +165,7 @@ func (h *TenantHandler) UpdateTenant(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, "name tidak boleh kosong")
 	}
 
-	tenant, err := h.tenantService.UpdateTenant(c.Context(), tenantID, userID.(string), req.Name, req.Address, req.Description)
+	tenant, err := h.tenantService.UpdateTenant(c.Context(), tenantID, userID.(string), req.Name, req.Address, req.Description, req.Logo)
 	if err != nil {
 		if err.Error() == "UpdateTenant: user bukan admin di tenant ini" {
 			return utils.ErrorResponse(c, fiber.StatusForbidden, "anda bukan admin di tenant ini")
