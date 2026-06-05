@@ -53,7 +53,9 @@ export default function Home() {
               alt="Atur Qurban"
               width={140}
               height={40}
-              className="w-[140px] h-auto object-contain"
+              // PERBAIKAN 1: Menggunakan inline style untuk width & height auto
+              style={{ width: "140px", height: "auto" }}
+              className="object-contain"
               priority
             />
           </Link>
@@ -170,7 +172,9 @@ export default function Home() {
               alt="Keuangan Umum"
               width={120}
               height={40}
-              className="w-[120px] h-auto object-contain rounded"
+              // PERBAIKAN 2: Menggunakan inline style untuk width & height auto
+              style={{ width: "120px", height: "auto" }}
+              className="object-contain rounded"
               loading="eager"
             />
           </a>

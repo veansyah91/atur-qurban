@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/username/qurban-app/config"
 	"github.com/username/qurban-app/internal/router"
 	"github.com/username/qurban-app/pkg/database"
@@ -39,23 +40,12 @@ func main() {
 	})
 
 	// Konfigurasi CORS
-	app.Use(func(c *fiber.Ctx) error {
-		origin := c.Get("Origin")
-		// Dalam produksi, ganti dengan whitelist domain frontend Anda yang sebenarnya
-		// Contoh: if origin == "https://app.aturqurban.com" { ... }
-		if origin != "" {
-			c.Set("Access-Control-Allow-Origin", origin)
-		}
-		c.Set("Access-Control-Allow-Credentials", "true")
-		c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-
-		if c.Method() == "OPTIONS" {
-			return c.SendStatus(fiber.StatusNoContent)
-		}
-
-		return c.Next()
-	})
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:3000",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
+		AllowCredentials: true,
+	}))
 
 	// Daftarkan semua route
 	router.NewRouter(app, db, rdb)

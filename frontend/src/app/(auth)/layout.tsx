@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 interface AuthLayoutProps {
@@ -13,14 +14,16 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       {/* Sisi Kiri: Logo (Desktop Only) */}
       <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center bg-primary/5 p-12">
         <div className="max-w-md text-center">
-          <Image
-            src="/assets/logo-vertical.png"
-            alt="Atur Qurban"
-            width={400}
-            height={120}
-            className="h-auto w-80 object-contain mb-8 mx-auto"
-            priority
-          />
+          <Link href="/" className="cursor-pointer">
+            <Image
+              src="/assets/logo-vertical.png"
+              alt="Atur Qurban"
+              width={400}
+              height={120}
+              className="w-80 h-auto object-contain mb-8 mx-auto"
+              priority
+            />
+          </Link>
           <h1 className="text-3xl font-bold text-primary mb-4">Atur Qurban</h1>
           <p className="text-muted-foreground text-lg">
             Solusi manajemen qurban yang efisien dan transparan.
@@ -33,14 +36,16 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="w-full max-w-md">
           {/* Logo mobile only */}
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <Image
-              src="/assets/logo-vertical.png"
-              alt="Atur Qurban"
-              width={200}
-              height={60}
-              className="h-auto w-40 object-contain"
-              priority
-            />
+            <Link href="/" className="cursor-pointer">
+              <Image
+                src="/assets/logo-vertical.png"
+                alt="Atur Qurban"
+                width={200}
+                height={60}
+                className="w-40 h-auto object-contain"
+                priority
+              />
+            </Link>
           </div>
           {children}
         </div>

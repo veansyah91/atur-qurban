@@ -1,11 +1,7 @@
 buat issue.md planning:
 
-- perbaiki ui auth:
-  untuk mode desktop, taruh logo disebelah kiri dan form input di sebelah kanan
-  implementasikan pada semua fitur AUTH
-
-- lakukan code review setelah implementasi
-
+- perbaiki ./(auth)/layouts.ts
+- jadikan image sebagai Link ke halaman utama (/) dan pada jadikan cursor pointer saat hover ke image logo
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 

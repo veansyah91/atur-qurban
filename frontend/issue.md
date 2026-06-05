@@ -1,13 +1,13 @@
-# Planning: Perbaikan UI Autentikasi
+# Planning: Perbaikan Auth Layout
 
-Dokumen ini berisi instruksi tingkat tinggi (high-level) untuk memperbaiki antarmuka pengguna pada fitur Autentikasi. 
+## Objektif
+Memperbarui komponen layout pada modul autentikasi agar logo berfungsi sebagai navigasi ke halaman utama.
 
-## 1. Perbaikan Layout UI Auth
-- **Target Fitur**: Terapkan pembaruan tata letak (layout) ini pada semua fitur yang berkaitan dengan Autentikasi.
-- **Penyesuaian Mode Desktop**: Pada ukuran layar desktop, buat tata letak berdampingan:
-  - **Sisi Kiri**: Tempatkan logo atau elemen visual.
-  - **Sisi Kanan**: Tempatkan form input.
+## File Target
+- `./(auth)/layouts.ts` (atau file layout yang setara di dalam folder auth)
 
-## 2. Code Review
-- Setelah semua implementasi selesai, lakukan review kode (code review).
-- Pastikan kode bersih, konsisten, dan implementasi UI sudah sesuai dengan poin nomor 1 tanpa merusak fungsi yang ada.
+## Instruksi Implementasi
+1. Ubah elemen gambar logo yang sudah ada agar dibungkus atau menggunakan komponen `Link` yang mengarah ke halaman utama (`/`).
+2. Pastikan elemen gambar logo tersebut memiliki styling interaktif, yaitu kursor berubah menjadi `pointer` saat di-hover.
+
+Pastikan integrasi komponen Link dan styling disesuaikan dengan standar framework proyek yang ada saat ini.

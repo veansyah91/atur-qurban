@@ -1,9 +1,8 @@
 buat issue.md untuk planning:
 
-Task: modifikasi auth
-
-- lakukan code review pada update auth
-- perbaiki dokumentasi pada documentation/auth.md
+Task: perbaiki cors
+Error message:
+Access to XMLHttpRequest at 'http://localhost:8080/api/v1/auth/login' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 
