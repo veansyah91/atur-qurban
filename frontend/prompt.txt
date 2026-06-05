@@ -1,7 +1,8 @@
 buat issue.md planning:
 
-- perbaiki ./(auth)/layouts.ts
-- jadikan image sebagai Link ke halaman utama (/) dan pada jadikan cursor pointer saat hover ke image logo
+- buatkan project dengan nuxtjs
+- gunakan state management bawaan atau official vuejs
+- gunakan vue ui bawaan atau official vuejs
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 
