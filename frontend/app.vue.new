@@ -1,0 +1,138 @@
+<script setup>
+const isOpen = ref(false)
+
+const features = [
+  {
+    title: 'Gratis',
+    description: 'Layanan ini sepenuhnya gratis untuk membantu pengelolaan qurban di seluruh wilayah.',
+    icon: 'i-heroicons-gift'
+  },
+  {
+    title: 'Buat Kupon Otomatis',
+    description: 'Sistem pembuatan kupon otomatis untuk distribusi daging yang lebih tertib dan efisien.',
+    icon: 'i-heroicons-ticket'
+  },
+  {
+    title: 'Tabungan Qurban',
+    description: 'Fitur manajemen tabungan untuk memudahkan jamaah dalam merencanakan ibadah qurban.',
+    icon: 'i-heroicons-banknotes'
+  }
+]
+</script>
+
+<template>
+  <div class="min-h-screen bg-white">
+    <!-- 1. Nav Header -->
+    <header class="border-b border-gray-100 sticky top-0 bg-white z-50">
+      <UContainer>
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo Horizontal (Kiri) -->
+          <div class="flex-shrink-0">
+            <img src="~/assets/logo-horizontal.png" alt="Logo Horizontal" class="h-8 w-auto" />
+          </div>
+
+          <!-- Desktop Navigation (Kanan) -->
+          <div class="hidden md:flex items-center gap-x-4">
+            <UButton variant="ghost" color="gray" label="Masuk" />
+            <UButton class="bg-brand-primary hover:bg-brand-primary-dark text-white" label="Daftar" />
+          </div>
+
+          <!-- Mobile Hamburger (Kanan) -->
+          <div class="md:hidden">
+            <UButton
+              icon="i-heroicons-bars-3"
+              color="gray"
+              variant="ghost"
+              @click="isOpen = true"
+            />
+          </div>
+        </div>
+      </UContainer>
+
+      <!-- Sidebar Mobile -->
+      <USlideover v-model="isOpen" side="right">
+        <div class="p-4 flex flex-col gap-y-4">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-bold text-brand-primary text-lg">Menu</span>
+            <UButton
+              icon="i-heroicons-x-mark"
+              color="gray"
+              variant="ghost"
+              @click="isOpen = false"
+            />
+          </div>
+          <UButton block variant="soft" color="gray" label="Masuk" @click="isOpen = false" />
+          <UButton block class="bg-brand-primary text-white" label="Daftar" @click="isOpen = false" />
+        </div>
+      </USlideover>
+    </header>
+
+    <main>
+      <!-- 2. Hero Section -->
+      <section class="py-16 md:py-24 bg-brand-surface">
+        <UContainer>
+          <div class="flex flex-col items-center text-center">
+            <!-- Logo Vertical -->
+            <div class="mb-8">
+              <img src="~/assets/logo-vertical.png" alt="Logo Vertical" class="h-40 md:h-56 w-auto" />
+            </div>
+            <!-- Tagline -->
+            <h1 class="text-2xl md:text-4xl font-bold text-gray-900 max-w-3xl leading-relaxed">
+              Solusi Gratis Manajemen Qurban: Atur distribusi daging, buat kupon otomatis, dan kelola kegiatan qurban dengan mudah.
+            </h1>
+            <div class="mt-10">
+              <UButton size="xl" class="bg-brand-primary hover:bg-brand-primary-dark text-white px-8">
+                Mulai Sekarang
+              </UButton>
+            </div>
+          </div>
+        </UContainer>
+      </section>
+
+      <!-- 3. Fitur - fitur -->
+      <section class="py-20">
+        <UContainer>
+          <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Fitur-fitur</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <UCard v-for="feature in features" :key="feature.title" class="hover:shadow-lg transition-shadow">
+              <div class="text-center py-4">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-brand-primary/10 text-brand-primary mb-6">
+                  <UIcon :name="feature.icon" class="w-6 h-6" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">{{ feature.title }}</h3>
+                <p class="text-gray-600 leading-relaxed">
+                  {{ feature.description }}
+                </p>
+              </div>
+            </UCard>
+          </div>
+        </UContainer>
+      </section>
+    </main>
+
+    <!-- 4. Footer -->
+    <footer class="py-12 border-t border-gray-100 bg-gray-50">
+      <UContainer>
+        <div class="flex flex-col items-center text-center">
+          <p class="text-gray-600 font-medium mb-4">Support by: keuanganumum.com</p>
+          <img src="~/assets/keuangan-umum.jpeg" alt="Logo keuangan-umum.jpeg" class="h-14 w-auto object-contain rounded" />
+        </div>
+      </UContainer>
+    </footer>
+  </div>
+</template>
+
+<style scoped>
+.bg-brand-primary {
+  background-color: #094927;
+}
+.text-brand-primary {
+  color: #094927;
+}
+.bg-brand-primary-dark {
+  background-color: #063318;
+}
+.bg-brand-surface {
+  background-color: #f8f9fa;
+}
+</style>

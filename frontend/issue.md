@@ -1,14 +1,28 @@
-# Planning: Project Setup and Git Configuration
+# Planning: Resolve Vue Warnings
 
-## 1. Git Ignore Implementation
-- Create a `.gitignore` file at the root of the project.
-- Configure it to ignore the following:
-    - Dependency directories (`node_modules`).
-    - Build and runtime outputs (`.nuxt`, `.output`, `dist`).
-    - Environment variables and secret files (`.env`, `.env.*`).
-    - System-specific files (e.g., `.DS_Store`, `Thumbs.db`).
-    - Local IDE configurations (e.g., `.vscode`, `.idea`).
+## Masalah yang Ditemukan
+Terdapat peringatan (warning) pada console browser:
+`[Vue warn]: Failed to resolve component: AppButton`
 
-## 2. Verification
-- Ensure that unnecessary files and directories are no longer tracked or staged for commit.
-- Confirm that core source files and configuration files remain tracked.
+Warning ini muncul pada dua tempat:
+1. Komponen `<AppHeader>`
+2. Halaman utama / `<Index>`
+
+*(Catatan: Log terkait `<Suspense>` dan Nuxt DevTools adalah log bawaan dari lingkungan development Nuxt dan dapat diabaikan).*
+
+## Rencana Implementasi (High Level)
+
+1. **Periksa atau Buat Komponen `AppButton`**
+   - Periksa direktori komponen proyek (biasanya `components/`).
+   - Jika komponen `AppButton.vue` belum ada, buat komponen tersebut sebagai komponen UI tombol dasar.
+
+2. **Pastikan Auto-import Berjalan dengan Baik**
+   - Di Nuxt 3, komponen di dalam folder `components/` akan di-import secara otomatis. Pastikan file komponen `AppButton` berada di lokasi yang tepat agar dapat di-resolve otomatis oleh Nuxt.
+
+3. **Verifikasi Pemanggilan Komponen**
+   - Buka file komponen yang merepresentasikan `<AppHeader>` dan `<Index>` (misalnya `pages/index.vue`).
+   - Pastikan penulisan tag `<AppButton>` sudah benar.
+
+4. **Uji Coba**
+   - Jalankan proyek dan buka console browser.
+   - Pastikan warning *Failed to resolve component* sudah tidak muncul lagi.

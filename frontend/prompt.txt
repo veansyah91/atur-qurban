@@ -1,6 +1,35 @@
 buat issue.md planning:
 
-- buatkan git ignore, dan ignore hal-hal yang tidak perlu di push ke git
+- selesaikan warning berikut:
+ runtime-core.esm-bundler.js:7231 <Suspense> is an experimental feature and its API will likely change.
+devtools.client.js:49 ✨ Nuxt DevTools  Press Shift + Alt + D to open DevTools 
+hook.js:608 [Vue warn]: Failed to resolve component: AppButton
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <AppHeader > 
+  at <Default ref=Ref< undefined > > 
+  at <AsyncComponentWrapper ref=Ref< undefined > > 
+  at <LayoutLoader key="default" layoutProps= Object name="default" > 
+  at <NuxtLayoutProvider layoutProps= Object key="default" name="default"  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot>
+overrideMethod @ hook.js:608
+hook.js:608 [Vue warn]: Failed to resolve component: AppButton
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at <Index onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouteProvider key="/" vnode= Object route= Object  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <Default ref=Ref< undefined > > 
+  at <AsyncComponentWrapper ref=Ref< undefined > > 
+  at <LayoutLoader key="default" layoutProps= Object name="default" > 
+  at <NuxtLayoutProvider layoutProps= Object key="default" name="default"  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot>
+overrideMethod @ hook.js:608
+
+
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 
