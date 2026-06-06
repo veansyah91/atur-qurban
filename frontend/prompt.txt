@@ -1,8 +1,6 @@
 buat issue.md planning:
 
-- buatkan project dengan nuxtjs
-- gunakan state management bawaan atau official vuejs
-- gunakan vue ui bawaan atau official vuejs
+- buatkan git ignore, dan ignore hal-hal yang tidak perlu di push ke git
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 

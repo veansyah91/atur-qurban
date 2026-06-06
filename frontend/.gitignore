@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build and runtime outputs
+.nuxt/
+.output/
+dist/
+
+# Environment variables
+.env
+.env.*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE configurations
+.vscode/
+.idea/

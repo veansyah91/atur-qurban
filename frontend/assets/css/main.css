@@ -1,0 +1,14 @@
+:root {
+  --color-primary: #094927;
+  --color-primary-dark: #063318;
+  --color-primary-light: #12693a;
+  --color-accent: #ce981d;
+  --color-accent-dark: #a67b15;
+  --color-secondary: #12693a;
+  --color-warning: #f59e0b;
+  --color-error: #dc2626;
+  --color-surface: #f8f9fa;
+}
+
+/* Overriding Nuxt UI colors using Tailwind config or CSS variables if necessary */
+/* For high level setup, we define them here */
