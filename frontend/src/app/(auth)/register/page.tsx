@@ -40,8 +40,6 @@ const formSchema = z
     path: ["confirm_password"],
   });
 
-import Image from "next/image";
-
 // Implement component logic
 export default function RegisterPage() {
   const router = useRouter();

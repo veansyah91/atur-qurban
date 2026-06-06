@@ -48,77 +48,77 @@ type AuthService interface {
 
 // authService implementasi AuthService
 type authService struct {
-userRepo            repository.UserRepository
-rdb                 *redis.Client
-cfg                 *config.AppConfig
-notificationService NotificationService
-logger              *log.Logger
+	userRepo            repository.UserRepository
+	rdb                 *redis.Client
+	cfg                 *config.AppConfig
+	notificationService NotificationService
+	logger              *log.Logger
 }
 
 // NewAuthService membuat instance baru AuthService
 func NewAuthService(userRepo repository.UserRepository, rdb *redis.Client, cfg *config.AppConfig, notifService NotificationService, logger *log.Logger) AuthService {
-if logger == nil {
-logger = log.New(io.Discard, "", 0)
-}
-return &authService{
-userRepo:            userRepo,
-rdb:                 rdb,
-cfg:                 cfg,
-notificationService: notifService,
-logger:              logger,
-}
+	if logger == nil {
+		logger = log.New(io.Discard, "", 0)
+	}
+	return &authService{
+		userRepo:            userRepo,
+		rdb:                 rdb,
+		cfg:                 cfg,
+		notificationService: notifService,
+		logger:              logger,
+	}
 }
 
 // RequestRegisterOTP menyimpan data registrasi pending ke Redis dan mengirim OTP
 func (s *authService) RequestRegisterOTP(ctx context.Context, name, phone, password string) (string, error) {
-phone = utils.NormalizePhoneNumber(phone)
+	phone = utils.NormalizePhoneNumber(phone)
 
-// Cek apakah nomor sudah terdaftar
-existingUser, err := s.userRepo.FindByPhone(phone)
-if err != nil {
-return "", fmt.Errorf("RequestRegisterOTP: %w", err)
-}
-if existingUser != nil {
-return "", fmt.Errorf("RequestRegisterOTP: %w", ErrPhoneAlreadyRegistered)
-}
+	// Cek apakah nomor sudah terdaftar
+	existingUser, err := s.userRepo.FindByPhone(phone)
+	if err != nil {
+		return "", fmt.Errorf("RequestRegisterOTP: %w", err)
+	}
+	if existingUser != nil {
+		return "", fmt.Errorf("RequestRegisterOTP: %w", ErrPhoneAlreadyRegistered)
+	}
 
-// Hash password
-hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-if err != nil {
-return "", fmt.Errorf("RequestRegisterOTP: gagal hash password: %w", err)
-}
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("RequestRegisterOTP: gagal hash password: %w", err)
+	}
 
-// Simpan data pending ke Redis (TTL 10 menit)
-pendingKey := fmt.Sprintf("register:pending:%s", phone)
-pendingData := fmt.Sprintf(`{"name":"%s","password":"%s"}`, name, string(hashedPassword))
-if err := s.rdb.Set(ctx, pendingKey, pendingData, 10*time.Minute).Err(); err != nil {
-return "", fmt.Errorf("RequestRegisterOTP: gagal simpan data pending: %w", err)
-}
+	// Simpan data pending ke Redis (TTL 10 menit)
+	pendingKey := fmt.Sprintf("register:pending:%s", phone)
+	pendingData := fmt.Sprintf(`{"name":"%s","password":"%s"}`, name, string(hashedPassword))
+	if err := s.rdb.Set(ctx, pendingKey, pendingData, 10*time.Minute).Err(); err != nil {
+		return "", fmt.Errorf("RequestRegisterOTP: gagal simpan data pending: %w", err)
+	}
 
-// Generate OTP 6 digit
-otp := fmt.Sprintf("%06d", rand.Intn(1000000))
+	// Generate OTP 6 digit
+	otp := fmt.Sprintf("%06d", rand.Intn(1000000))
 
-// Hash OTP dengan bcrypt sebelum disimpan
-hashedOTP, err := bcrypt.GenerateFromPassword([]byte(otp), bcrypt.DefaultCost)
-if err != nil {
-return "", fmt.Errorf("RequestRegisterOTP: gagal hash OTP: %w", err)
-}
+	// Hash OTP dengan bcrypt sebelum disimpan
+	hashedOTP, err := bcrypt.GenerateFromPassword([]byte(otp), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("RequestRegisterOTP: gagal hash OTP: %w", err)
+	}
 
-// Simpan OTP hash ke Redis (TTL 5 menit)
-otpKey := fmt.Sprintf("otp:register:%s", phone)
-if err := s.rdb.Set(ctx, otpKey, string(hashedOTP), 5*time.Minute).Err(); err != nil {
-return "", fmt.Errorf("RequestRegisterOTP: gagal simpan OTP: %w", err)
-}
+	// Simpan OTP hash ke Redis (TTL 5 menit)
+	otpKey := fmt.Sprintf("otp:register:%s", phone)
+	if err := s.rdb.Set(ctx, otpKey, string(hashedOTP), 5*time.Minute).Err(); err != nil {
+		return "", fmt.Errorf("RequestRegisterOTP: gagal simpan OTP: %w", err)
+	}
 
-// Kirim OTP via WhatsApp
-if s.notificationService != nil {
-message := fmt.Sprintf("Kode OTP registrasi Anda: %s. Jangan bagikan kode ini ke siapapun. Berlaku 5 menit.", otp)
-if err := s.notificationService.Send(ctx, phone, message); err != nil {
-s.logger.Printf("RequestRegisterOTP: gagal mengirim OTP via WhatsApp: %v\n", err)
-}
-}
+	// Kirim OTP via WhatsApp
+	if s.notificationService != nil {
+		message := fmt.Sprintf("Kode OTP registrasi Anda: %s. Jangan bagikan kode ini ke siapapun. Berlaku 5 menit.", otp)
+		if err := s.notificationService.Send(ctx, phone, message); err != nil {
+			s.logger.Printf("RequestRegisterOTP: gagal mengirim OTP via WhatsApp: %v\n", err)
+		}
+	}
 
-return otp, nil
+	return otp, nil
 }
 
 // ResendRegisterOTP mengirim ulang OTP untuk registrasi yang pending

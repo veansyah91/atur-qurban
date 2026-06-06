@@ -1,7 +1,13 @@
 buat issue.md planning:
 
-- perbaiki ./(auth)/layouts.ts
-- jadikan image sebagai Link ke halaman utama (/) dan pada jadikan cursor pointer saat hover ke image logo
+perbaiki error berikut:
+a. auth.service.ts:15 
+   POST http://localhost:3000/auth/login 404 (Not Found)
+   description: error terjadi saat submit login
+
+b. auth-register.service.ts:11 
+   POST http://localhost:3000/auth/register/request-otp 404 (Not Found)
+   description: error terjadi saat submit register
 
 Jangan terlalu low level atau detail
 Cukup instruksikan high level 
